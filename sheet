@@ -1,0 +1,1431 @@
+import pandas as pd
+import glob
+import os
+import numpy as np
+import shutil
+import fnmatch
+from PyPDF2 import PdfFileReader
+import tabula
+from pathlib import Path
+import zipfile
+import time
+import re
+
+pd.set_option('display.max_columns', 160000)
+pd.set_option('display.width', 100000)
+pd.options.display.max_colwidth = 200
+
+#### Delete Folders
+root_dir = r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily'
+for root, dirs, files in os.walk(root_dir):
+    for name in dirs:
+        print(os.path.join(root, name))
+        shutil.rmtree(os.path.join(root, name))
+
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\convert_csv', "*.csv"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\format', "*.xlsx"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\export', "*.xlsx"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\issues', "*.csv"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\Not Concern', "*.xlsx"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\empty', "*.xlsx"))
+for f in filelist:
+    os.remove(f)
+
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid', "*.pdf"))
+for f in filelist:
+    os.remove(f)
+
+filelist = glob.glob(os.path.join(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid', "*.zip"))
+for f in filelist:
+    os.remove(f)
+
+##### DATE&TIME
+today = time.strftime("[%d-%m-%Y] (%H.%M.%S)")
+today = str(today)
+
+##### LINKS
+dirzip = glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/*.zip")
+filename = dirzip[0]
+filename = os.path.basename(filename).split(".")[0]
+ziptopdffolder = r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/{}".format(filename)
+
+##### EXTRACTIONS
+zip_ref = zipfile.ZipFile(dirzip[0], 'r')
+zip_ref.extractall(ziptopdffolder)
+zip_ref.close()
+
+
+dirpath = r"{}/".format(ziptopdffolder)
+dirpath2 = r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\convert_csv/"
+
+
+input_dir = dirpath
+for root, dirs, files in os.walk(input_dir):
+    for filename in files:
+
+        base = os.path.join(os.path.abspath(root))
+        # # #Get current name
+        old_name = os.path.join(base, filename)
+        # # # old filename
+        oldfilename = old_name.split("\\")[-1]
+        # # # #Get parent folder
+        parent_folder = os.path.basename(base)
+        # # # #New name based on parent folder
+        new_file_name = parent_folder + " ][ " + oldfilename
+        # new_file_name = new_file_name.replace("pdf.pdf", "pdf")
+        # # # #assuming same extension
+        new_abs_name = os.path.join(base, new_file_name)
+        # # # # #Rename to new name
+        os.rename(old_name, new_abs_name)
+
+        # #Copy to one level up
+        one_level_up = os.path.normpath(os.path.join(base, os.pardir))
+        one_level_up_name = os.path.join(one_level_up, new_file_name)
+        level_parent_up = r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/"
+        shutil.copy(new_abs_name, level_parent_up)
+
+
+
+for filename in glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/*.xps.pdf"):
+    os.remove(filename)
+
+dirpath = r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/"
+dirpath2 = r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\convert_csv/"
+dirpath_blank = r'C:\Users\RD1\Desktop\Task_Assigned\pdf_task\Task\blank'
+countpdf = len(fnmatch.filter(os.listdir(dirpath), '*.pdf'))
+source_files='C:/Users/RD1\Desktop/Task_Assigned/12-26-2018 rma sto/*.csv'
+target_folder1='C:/Users/RD1\Desktop/Task_Assigned/12-26-2018 rma sto/Newfolder'
+dir = glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/*.pdf")
+
+
+a = 0
+b = countpdf
+
+for i in range(a, b):
+        ful_file = dirpath + os.path.basename(dir[i])
+        name_pdf = Path(ful_file).name
+        full_pdf_path = dirpath+name_pdf
+
+        pdf = PdfFileReader(open(ful_file,'rb'))
+        countpdf = pdf.getNumPages()
+        total = countpdf
+        a1 = 0
+        b1 = total
+        for i in range(a1, b1):
+            df1 = tabula.read_pdf(ful_file, multiple_tables=True, pages="all", guess=False)
+            a1 = df1[i]
+            print(a1.to_csv(dirpath2 + name_pdf + '(page#' + str(i + 1) + ')' + '.csv', index=False))
+
+
+
+###########################################################################################################
+
+
+
+
+##### REAL ALL CSV
+filesnamescsv = r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\convert_csv'
+filelist = os.listdir(filesnamescsv)
+file_names=[os.path.splitext(x)[0] for x in filelist]
+fileexpo = glob.glob(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\format')
+files = glob.glob(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\convert_csv/*.csv')
+files_len = len(files)
+file_start = range(0, files_len)
+ka = []
+emt = []
+for p in file_start:
+    pathfile = files[p]
+
+issues = r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\issues/'
+problems = r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\Not Concern/'
+dir = r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\format/'
+
+for mya in range(files_len):
+    try:
+        try:
+            dataset = pd.read_csv(files[mya])
+            df1 = dataset
+            df1 = df1.dropna(axis=1, how='all')
+            df1 = df1.T.reset_index(drop=True).T
+            df1.columns = df1.columns.astype(str)
+            df1.replace([np.nan], [""], inplace=True)
+
+
+            # if df1["1"].str.contains("Price Extension").any():
+            if df1["1"].str.contains("Price").any() == True and df1["1"].str.contains("Extension").any() == True:
+                df1["2.4"] = df1["1"].str.split(" ").str[0]
+                df1["2.5"] = df1["1"].str.split(" ").str[-1]
+                df1.drop(columns=["1"], inplace=True)
+                df1 = pd.DataFrame(data=df1, columns=['0', '2.4', '2.5', '2'])
+                df1 = df1.T.reset_index(drop=True).T
+                df1.columns = df1.columns.astype(str)
+                df1.replace([np.nan], [""], inplace=True)
+
+
+            if df1["1"].str.contains("Extension").any():
+                pricecolumndata = df1['1'].replace('', np.nan)
+                pricecolumndata.dropna(inplace=True)
+                pricecolumndata = pricecolumndata.reset_index()
+                mypricecolumndata = pricecolumndata[pricecolumndata["1"].str.contains("Extension")]
+                pricecolumndatalist = mypricecolumndata.index + 1
+                pricecolumndatalist = pricecolumndatalist.tolist()
+                pricecolumndata = pricecolumndata.loc[pricecolumndatalist]
+                pricecolumndata.set_index(['index'], inplace=True)
+                pricecolumndata = pricecolumndata.index
+                pricecolumndata = pricecolumndata.tolist()
+
+                df1["0.5"] = df1.loc[pricecolumndata]["0"].str.split().str[-1]
+                df1 = pd.DataFrame(data=df1, columns=['0', '0.5', '1', '2'])
+                df1 = df1.T.reset_index(drop=True).T
+                df1.columns = df1.columns.astype(str)
+                df1.replace([np.nan], [""], inplace=True)
+
+                df1["0.4"] = df1[df1["2"].str.contains("Extension")]["0"].str.split().str[-1]
+                df1["0.5"] = df1.loc[pricecolumndata]["0"].str.split().str[-1]
+                df1 = pd.DataFrame(data=df1, columns=['0', '0.4', '1', '2', "3"])
+                df1 = df1.T.reset_index(drop=True).T
+                df1.columns = df1.columns.astype(str)
+                df1.replace([np.nan], [""], inplace=True)
+
+                df1["1"] = df1["1"] + df1["2"].map(str)
+                df1.drop(columns="2", inplace=True)
+
+
+            if df1['0'].str.contains('Daily inventory report').any() == True:
+                print(df1.to_excel(problems + str(file_names[mya]) + '.xlsx', index=False))
+
+            if df1['0'].str.contains('Debit/Credit card reconciliation report').any() == True:
+                print(df1.to_excel(problems + str(file_names[mya]) + '.xlsx', index=False))
+
+            if df1['0'].str.contains('Post void report').any() == True:
+                print(df1.to_excel(problems + str(file_names[mya]) + '.xlsx', index=False))
+
+            if df1['0'].str.contains('Term:|BAN|Trans:|Qty|MSISDN').any() == False:
+                print(df1.to_excel(problems + str(file_names[mya]) + '.xlsx', index=False))
+
+
+            ############################################################################################################
+            ###### Data To Columns
+            ############################################################################################################
+            else:
+                print("else")
+
+                ######## PRICE MERGE
+                rightsideprice = df1.apply(lambda row: row.astype(str).str.contains('Price').any(), axis=0)
+                rightsideprice = rightsideprice[rightsideprice == True].index
+
+                mylenrightsideprice = len(rightsideprice)
+                if mylenrightsideprice >= 1:
+                    if "0" in rightsideprice:
+                        rightsidepriceindex = int(rightsideprice.tolist()[1])
+                        rightsidepriceindex = rightsidepriceindex
+                        df1["0"] = [' '.join(row.astype(str)) for row in df1[df1.columns[0:rightsidepriceindex]].values]
+                        df1.drop(df1.iloc[:, 1:rightsidepriceindex], inplace=True, axis=1)
+
+                        df1 = df1.T.reset_index(drop=True).T
+                        df1.columns = df1.columns.astype(str)
+                        df1.replace([np.nan], [""], inplace=True)
+
+                    elif "0" not in rightsideprice:
+                        rightsidepriceindex = int(rightsideprice.tolist()[0])
+                        rightsidepriceindex = rightsidepriceindex
+                        df1["0"] = [' '.join(row.astype(str)) for row in df1[df1.columns[0:rightsidepriceindex]].values]
+                        df1.drop(df1.iloc[:, 1:rightsidepriceindex], inplace=True, axis=1)
+
+                        df1 = df1.T.reset_index(drop=True).T
+                        df1.columns = df1.columns.astype(str)
+                        df1.replace([np.nan], [""], inplace=True)
+
+
+                elif mylenrightsideprice < 1:
+                    df1['0'] = df1[df1.columns[:-3]].apply(lambda x: " ".join(x.dropna().astype(str).astype(str)), axis=1)
+                    df1["0"] = df1["0"].str.strip().str.replace("   ", " ").str.replace("  ", " ")
+                    df1 = df1.drop(df1.columns[1:-3], axis=1)
+                    df1 = df1.T.reset_index(drop=True).T
+                    df1.columns = df1.columns.astype(str)
+
+                    df1 = df1.T.reset_index(drop=True).T
+                    df1.columns = df1.columns.astype(str)
+                    df1.replace([np.nan], [""], inplace=True)
+
+                    lastcolumn = df1.columns[-1]
+                    lastcolumn = df1[lastcolumn].nunique()
+                    if lastcolumn > 2:
+                        df1['0'] = df1[df1.columns[:-3]].apply(lambda x: " ".join(x.dropna().astype(str).astype(str)), axis=1)
+                        df1["0"] = df1["0"].str.strip().str.replace("   ", " ").str.replace("  ", " ")
+                        df1 = df1.drop(df1.columns[1:-2], axis=1)
+                        df1 = df1.T.reset_index(drop=True).T
+                        df1.columns = df1.columns.astype(str)
+
+
+                countdescorice = df1[df1["1"].str.contains("Description")]["1"]
+                desclen = len(countdescorice[countdescorice == "Description"])
+                pricelen = len(countdescorice[countdescorice == "Description Price"])
+                if desclen > pricelen:
+                    df1["0"] = df1["0"] + " " + df1["1"].map(str)
+                    df1 = df1.drop(columns="1", axis=1)
+                    df1 = df1.T.reset_index(drop=True).T
+                    df1.columns = df1.columns.astype(str)
+
+
+                # # ######## EXTENSION MERGE
+                # rightsideextension = df1.apply(lambda row: row.astype(str).str.contains('Extension|Change Due').any(), axis=0)
+                # rightsideextension = rightsideextension[rightsideextension == True].index
+                # rightsideextensionindex = int(rightsideextension.tolist()[0])
+                # rightsideextensionindex = rightsideextensionindex
+                # df1["2"] = [' '.join(row.astype(str)) for row in df1[df1.columns[rightsideextensionindex:]].values]
+                #
+                # df1["2"].replace("\d/\d", "", regex=True, inplace=True)
+                # # df1.drop(df1.iloc[:, 3:rightsideextensionindex], inplace=True, axis=1)
+                # df1.drop(df1.iloc[:, 3:-1], inplace=True, axis=1)
+                # df1 = df1.T.reset_index(drop=True).T
+                # df1.columns = df1.columns.astype(str)
+                # df1.replace([np.nan], [""], inplace=True)
+
+                ####### EXTENSION MERGE
+                rightsideextension = df1.apply(lambda row: row.astype(str).str.contains('Extension|Change Due').any(), axis=0)
+                rightsideextension = rightsideextension[rightsideextension == True].index
+                rightsideextensionindex = int(rightsideextension.tolist()[0])
+                rightsideextensionindex = rightsideextensionindex
+
+                df1[str(rightsideextensionindex)] = [' '.join(row.astype(str)) for row in df1[df1.columns[rightsideextensionindex:]].values]
+                df1[str(rightsideextensionindex)].replace("\d/\d", "", regex=True, inplace=True)
+
+                if '2' in df1.columns:
+                    if df1["1"].str.contains("Price").any() == True and df1["2"].str.contains("Price").any() == True:
+                        df1["1"] = df1["1"].map(str) + " " + df1["2"].map(str)
+                        df1 = df1.drop("1", axis=1)
+                        df1 = df1.T.reset_index(drop=True).T
+                        df1.columns = df1.columns.astype(str)
+
+                df1.drop(df1.iloc[:, 3:rightsideextensionindex], inplace=True, axis=1)
+                df1.drop(df1.iloc[:, 3:-1], inplace=True, axis=1)
+                df1 = df1.T.reset_index(drop=True).T
+                df1.columns = df1.columns.astype(str)
+                df1.replace([np.nan], [""], inplace=True)
+
+
+                ##########################################################################################################
+                # if '3' in df1.columns:
+                #     df1['0'] = df1[df1.columns[:-3]].apply(lambda x: " ".join(x.dropna().astype(str).astype(str)), axis=1)
+                #     df1["0"] = df1["0"].str.strip().str.replace("   ", " ").str.replace("  ", " ")
+                #     df1 = df1.drop(df1.columns[1:-3], axis=1)
+                #     df1 = df1.T.reset_index(drop=True).T
+                #     df1.columns = df1.columns.astype(str)
+                #
+                #     lastcolumn = df1.columns[-1]
+                #     lastcolumn = df1[lastcolumn].nunique()
+                #     if lastcolumn > 2:
+                #         df1['0'] = df1[df1.columns[:-3]].apply(lambda x: " ".join(x.dropna().astype(str).astype(str)), axis=1)
+                #         df1["0"] = df1["0"].str.strip().str.replace("   ", " ").str.replace("  ", " ")
+                #         df1 = df1.drop(df1.columns[1:-2], axis=1)
+                #         df1 = df1.T.reset_index(drop=True).T
+                #         df1.columns = df1.columns.astype(str)
+                ##############################################################################################################
+
+                ### Extension  columne
+                if '3' in df1.columns:
+                    if df1["3"].str.contains("Extension|Change Due").any() == True:
+                        df1["2"] = df1["2"] + " " + df1["3"]
+                        df1 = df1.drop("3", axis=1)
+                        df1 = df1.T.reset_index(drop=True).T
+                        df1.columns = df1.columns.astype(str)
+
+                #### Customer In Column 1
+                if df1["1"].str.contains("Customer").any() == True:
+                    a = df1[df1["1"].str.contains("Customer")].index
+                    a = a.tolist()
+                    df1["0"][a[0]] = df1["0"][a[0]].replace(" ", ",").replace(",", " ")
+                    df1["0"][a[0]] = df1["0"][a[0]] + "," + df1["1"][a[0]]
+
+                #### Sales Rep In Column 1
+                if df1["1"].str.contains("Sales Rep").any() == True or df1["1"].str.contains("Sales Rep").any() == True:
+                    a = df1[df1["1"].str.contains("Sales Rep")].index
+                    a = a.tolist()
+                    df1["0"][a[0]] = df1["0"][a[0]].replace(" ", ", ", 2).replace("Term:,", "Term: ", 2)
+                    df1["0"][a[0]] = df1["0"][a[0]] + "," + df1["1"][a[0]]
+
+                #### BAN In Column 1 and 3
+                if df1["1"].str.contains("MSISDN:").any() == True:
+                    a = df1[df1["1"].str.contains("MSISDN:")].index
+                    a = a.tolist()
+                    df1["0"][a] = df1["0"][a] + ", " + df1["1"][a] + ", " + df1["3"][a]
+                    df1["0"][a] = df1["0"][a[0]].replace("BAN", ",BAN")
+
+                #### Sales Rep In Column 1
+                if df1["0"].str.contains("Term").any() == True and df1["1"].str.contains("Sales Rep").any() == False:
+                    a = df1[df1["0"].str.contains("Term")].index
+                    a = a.tolist()
+                    len_a = len(a)
+                    for i in range(0, len_a):
+                        str1 = df1["0"][a[i]]
+                        str2 = ","
+                        if str1.find(str2) < 0:
+                            df1["0"][a[i]] = df1["0"][a[i]].replace(" ", ", ", 4).replace(",", "", 1)
+                            df1["0"][a[i]] = df1["0"][a[i]].replace('Trans:,', 'Trans:')
+
+                #### Customer In Column 3
+                if '3' in df1.columns:
+                    if df1["3"].str.contains("Customer:").any() == True:
+                        a = df1[df1["3"].str.contains("Customer:")].index
+                        a = a.tolist()
+                        df1["0"][a] = df1["0"][a] + ", " + df1["1"][a] + ", " + df1["3"][a]
+                        df1["0"][a] = df1["0"][a[0]].replace(", ,BAN:", ", BAN:")
+
+                #### Customer In Column 1
+                if df1["1"].str.contains("Customer:").any() == True:
+                    a = df1[df1["1"].str.contains("Customer:")].index
+                    a = a.tolist()
+                    df1["0"][a] = df1["0"][a] + "," + df1["1"][a]
+                    df1["0"][a] = df1["0"][a[0]].replace("BAN", ", BAN")
+
+                ### BAN, Customer, Msidin In Column 0 with no comma
+                if df1["0"].str.contains("BAN").any() == True:
+                    a = df1[df1['0'].str.contains("BAN")].index
+                    a = a.tolist()
+                    len_a = len(a)
+                    for i in range(0, len_a):
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(" BAN:", ",BAN:")
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(",,BAN:", ", BAN:")
+
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(" MSISDN:", ",MSISDN:")
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(",,MSISDN:", ", MSISDN:")
+
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(" Customer:", ",Customer:")
+                        df1["0"][a[i]] = df1["0"][a[i]].replace(",,Customer:", ", Customer:")
+
+                if df1["0"].str.contains("BAN").any() == True:
+                    a = df1[df1['0'].str.contains(" BAN ")].index
+                    df1.loc[a] = ""
+
+                if df1["1"].str.contains("Description").any() == True & df1["1"].str.contains("Price").any() == True:
+                    print('Desc 1')
+                    df1["0"] = df1["0"] + " " + df1["1"].map(str)
+                    df1 = df1.T.reset_index(drop=True).T
+                    df1.columns = df1.columns.astype(str)
+
+                if df1["1"].str.contains("Description").any() == True & df1["1"].str.contains("Price").any() == False:
+                    print('Desc 2')
+                    df1["0"] = df1["0"] + " " + df1["1"].map(str)
+                    df1 = df1.drop(columns="1", axis=1)
+                    df1 = df1.T.reset_index(drop=True).T
+                    df1.columns = df1.columns.astype(str)
+
+
+
+                ###############################################################
+                ##### ADD COLUMNS
+                ###############################################################
+
+                df1['1001'] = ""
+                df1['1002'] = ""
+                df1['1003'] = ""
+                df1['1004'] = ""
+                df1['1005'] = "EMPTY"
+                df1['1006'] = ""
+                df1['1007'] = ""
+                df1['1008'] = ""
+                df1['1009'] = ""
+                df1['1010'] = ""
+                df1['1011'] = ""
+                df1['1012'] = ""
+
+                ###############################################################
+                ##### CHANGE DUE SPACE ISSUE TRANSFER DATA
+                ###############################################################
+                # print(df1)
+
+                if '2' in df1.columns:
+                    if df1["2"].str.contains("Change Due").any() == True:
+
+                        changeduespace = df1[df1["2"].str.contains("Change Due")].index + 1
+                        changeduespace = df1.loc[changeduespace]
+                        df1["1006_1"] = changeduespace["2"]
+                        df1["1006_1"] = df1["1006_1"].replace("", np.NaN)
+                        df1["1006"] = df1["1006_1"].replace("", np.NaN)
+
+                        changeduespacebool1 = changeduespace["2"] == ''
+                        changeduespacebool2 = changeduespace["2"] == ' '
+                        if changeduespacebool1.any() == True or changeduespacebool2.any() == True:
+                            changeduespace = changeduespace[changeduespace == True].index + 1
+                            changeduespace = df1.loc[changeduespace]["2"]
+                            df1["1006_2"] = changeduespace
+                            df1["1006_2"] = df1["1006_2"].replace("", np.NaN)
+                            df1['1006'] = df1['1006_1'].combine_first(df1['1006_2'])
+                            df1["1006"] = df1["1006"].replace(" ", np.NaN)
+
+                ###############################################################
+                ##### Sales Amount TENDER SPACE ISSUE TRANSFER DATA
+                ###############################################################
+
+                if df1["0"].str.contains("Tenders").any() == True:
+                    desctender = df1[df1['0'].str.contains("Tenders")].index + 1
+                    desctender = desctender.tolist()
+                    desctender = df1.loc[desctender]
+                    desctender_0 = desctender[desctender["0"].str.contains("^\D+") == False]
+                    df1["1007_2"] = desctender_0["0"]
+                    df1["1007_2"] = df1["1007_2"].replace("", np.NaN)
+
+                    ######## 1007_3
+                    desctender.replace([np.nan], [""], inplace=True)
+                    desctender_1 = desctender[desctender["0"].str.contains("^\D+")]
+                    desctender_1 = desctender_1.index + 1
+                    try:
+                        desctender_1 = desctender_1.tolist()
+                        desctender_1 = df1.loc[desctender_1]
+                        desctender_1 = desctender_1[~ desctender_1["0"].str.contains("^\D+", na=False)]
+                        df1["1007_3"] = desctender_1["0"]
+                        df1["1007_3"] = df1["1007_3"].replace("", np.NaN)
+
+                        ########
+                        df1['1007'] = df1['1007_2'].combine_first(df1['1007_3'])
+
+                    except:
+                        df1['1007'] = df1['1007_2']
+
+                ###############################################################
+                ##### DESCRIPTION SPACE ISSUE
+                ###############################################################
+
+                descdescription = df1[df1['0'].str.contains("EACH")].index - 1
+                descdescription = descdescription.tolist()
+                descdescription = df1.loc[descdescription]
+                descdescription = descdescription[descdescription["0"].str.contains("Qty|EACH|Serial") == False]
+                df1["1008_1"] = descdescription["0"]
+                df1["1008_1"] = df1["1008_1"].shift(1)
+
+                descdescription = df1['0'].str.contains("EACH")
+                descdescription = df1.loc[descdescription]
+                df1["1008_2"] = descdescription["0"]
+
+                descdescription = df1[df1['0'].str.contains("EACH")].index + 1
+                descdescription = df1.loc[descdescription]
+                descdescription = descdescription[descdescription["0"].str.contains("Sales Amount|Tax|Total|Serial|EACH|https:") == False]
+                df1["1008_3"] = descdescription["0"]
+                df1["1008_3"] = df1["1008_3"].shift(-1)
+                df1['1008'] = df1[['1008_2', '1008_1', "1008_3"]].fillna('').sum(axis=1)
+
+                ###############################################################
+                ##### TRANFER TO NEW COLUMN AND REPLICATE
+                ###############################################################
+                descterm = df1[df1['0'].str.contains("Term")]
+                df1["1001"] = descterm["0"]
+
+                descban = df1[df1['0'].str.contains("BAN")]
+                df1["1002"] = descban["0"]
+
+                descprice = df1[df1['0'].str.contains("EACH")].index
+                descprice = df1.loc[descprice]
+                df1["1003"] = descprice["1"]
+
+                descprice2 = df1[df1['0'].str.contains("EACH")].index + 2
+                descprice2 = df1.loc[descprice2]
+                descprice2.replace([np.nan], [""], inplace=True)
+                df1["1003_2"] = descprice2[descprice2["1"].str.contains("^-?[0-9]")]["1"]
+
+                descprice3 = df1[df1['0'].str.contains("EACH")].index + 3
+                descprice3 = df1.loc[descprice3]
+                descprice3.replace([np.nan], [""], inplace=True)
+                df1["1003_3"] = descprice3[descprice3["1"].str.contains("^-?[0-9]")]["1"]
+
+                df1["1003"] = df1["1003"].combine_first(df1["1003_3"])
+
+                descextension = df1[df1['0'].str.contains("EACH")].index
+                descextension = df1.loc[descextension]
+                df1["1004"] = descextension["2"]
+
+                banrowdf = df1[df1['0'].str.contains("BAN")].index
+                banrowdf = df1.loc[banrowdf]
+                df1["1009"] = banrowdf["0"]
+
+                descserial = df1[df1['0'].str.contains("Serial #")]
+                df1["1010"] = descserial["0"]
+                df1["1010"] = df1["1010"].shift(-1)
+
+                desctendersingle = df1[df1['0'].str.contains("Mastercard|Cash|Debit|Installment Pay|American Express|Visa|Device Recovery")].index
+                desctendersingle = desctendersingle.tolist()
+                desctendersingle = df1.loc[desctendersingle]
+
+                desctendersingle["0"] = desctendersingle["0"]
+                df1["1011"] = desctendersingle["0"]  + " " + desctendersingle["1"].map(str)
+                df1["1011"] = df1["1011"].str.replace("  ", " ")
+
+                # desctendersingle["0"] = desctendersingle["0"].str.strip().str.split(" ").str[-1]
+                # df1["1011"] = desctendersingle["0"] + " " + desctendersingle["1"].map(str)
+
+
+                ################################################################
+                ##### REPLICATE DATA
+                ################################################################
+
+                ##### TERM ROW 1001
+                a = df1["1001"].fillna(method='ffill')
+                df1["1001"] = a
+
+                ##### BAN ROW 1002
+                a = df1["1002"].fillna(method='ffill')
+                df1["1002"] = a
+
+                ##### Price ROW 1003
+                df1["1003"] = df1["1003"].replace("", np.NaN)
+                a = df1["1003"].fillna(method='bfill')
+                df1["1003"] = a
+
+                ##### Extension ROW 1003
+                a = df1["1004"].fillna(method='bfill')
+                df1["1004"] = a
+
+                ##### Changedue ROW 1006
+                a = df1["1006"].fillna(method='bfill')
+                df1["1006"] = a
+
+                ##### Sales Tender Total
+                a = df1["1007"].fillna(method='bfill')
+                df1["1007"] = a
+
+                ##### Tender
+                a = df1["1011"].fillna(method='bfill')
+                df1["1011"] = a
+
+                ############################################################################################################
+                ###### WORKING BOX 1
+                ############################################################################################################
+
+                ##### Category
+                if df1['0'].str.contains('Daily transaction audit report').any() == True:
+                    try:
+                        category = df1[df1['0'].str.contains('Daily transaction audit report')].index
+                        category = category.tolist()
+                        category = df1["0"][category[0]]
+                        category = "".join(category)
+                    except:
+                        category = "not found"
+                else:
+                    category = "not found"
+
+                #### PrintDate
+                if df1['0'].str.contains('Print date').any() == True:
+                    try:
+                        deflen = len(df1)
+                        printdate = df1[df1['0'].str.contains('Print date')].index
+                        printdate = printdate.tolist()
+                        printdate = df1["0"][printdate[0]]
+                        printdate = str(printdate).split()
+                        printdate = printdate[:]
+                        printdate = " ".join(printdate)  # print(printdate)
+
+                    except:
+                        printdate = "not found"
+                else:
+                    printdate = "not found"
+
+                ##### StoreNumber
+                if df1['0'].str.contains('Store number:').any() == True:
+                    try:
+                        storeno = df1[df1['0'].str.contains('Store number')].index
+                        storeno = storeno.tolist()
+                        storeno = df1["0"][storeno[0]]
+                        storeno = str(storeno).split()
+                        storeno = storeno[:]
+                        storeno = "".join(storeno)  # print(storeno)
+                    except:
+                        storeno = "not found"
+                else:
+                    storeno = "not found"
+
+                ##### TMobile
+                if df1['0'].str.contains('Store number:').any() == True:
+                    try:
+                        tmobile = df1[df1['0'].str.contains('Store number:')].index + 1
+                        tmobile = tmobile.tolist()
+                        tmobile = df1["0"][tmobile[0]]
+                        tmobile = str(tmobile).split()
+                        tmobile = tmobile[:]
+                        tmobile = " ".join(tmobile)
+                    except:
+                        tmobile = "not found"
+                else:
+                    tmobile = "not found"
+
+                ##### Businessdate
+                if df1['0'].str.contains('Business date').any() == True:
+                    try:
+                        businessdate = df1[df1['0'].str.contains('Business date')].index
+                        businessdate = businessdate.tolist()
+                        businessdate = df1["0"][businessdate[0]]
+                        businessdate = str(businessdate).split()
+                        businessdate = businessdate[:]
+                        businessdate = "".join(businessdate)
+
+                    except:
+                        businessdate = "not found"
+                else:
+                    businessdate = "not found"
+
+                ##### Register
+                if df1['0'].str.contains('Register number').any() == True:
+                    try:
+                        registerno = df1[df1['0'].str.contains('Register number')].index
+                        registerno = registerno.tolist()
+                        registerno = df1["0"][registerno[0]]
+                        registerno = str(registerno).split()
+                        registerno = registerno[:]
+                        registerno = " ".join(registerno)  # print(registerno)
+                    except:
+                        registerno = "not found"
+                else:
+                    registerno = "not found"
+
+                ##################################################################
+                ##### WORKING BOX 3 EACH QTY SKU
+                ##################################################################
+
+                alleachdf = df1[df1['0'].str.contains(" EACH ")].index
+                alleachdf = alleachdf.tolist()
+                alleachdf = df1.loc[alleachdf]
+                alleachdf = alleachdf["0"].str.split(expand=True)
+                alleachdf = pd.DataFrame(alleachdf)
+
+                ###### QTY
+                try:
+                    qty = alleachdf[0]
+                    qty = qty.values
+                    qty = " ".join(qty).split(" ")
+                    qty = pd.Series(qty)  # print(qty)
+                except:
+                    qty = "not found"
+
+                ##### UNIT ALL
+                try:
+                    unit = alleachdf[1]
+                    unit = unit.values
+                    unit = " ".join(unit).split(" ")
+                    unit = pd.Series(unit)  # print(unit)
+                except:
+                    unit = "not found"
+
+                #### SKU ALL
+                try:
+                    sku = alleachdf[2]
+                    sku = sku.values
+                    sku = " ".join(sku).split(" ")
+                    sku = pd.Series(sku)  # print(sku)
+                except:
+                    sku = "not found"
+
+                # ##################################################################
+                # ##### WORKING BOX 3 Description
+                # ##################################################################
+
+                description = df1[df1['0'].str.contains(" EACH ")].index
+                description = description.tolist()
+                description = df1.loc[description]
+                description = description["1008"].str.split(" ", n=3, expand=True)
+                # print(description)
+
+                ###### Description
+                try:
+                    # desc = description[3].reset_index(drop=True)
+                    # desc = desc.str.replace("EACH +\w+", "", regex=True)
+                    # desc = desc.str.replace(r"\s+", " ", regex=True)
+                    # desc = desc.values
+                    # desc = pd.Series(desc)
+
+                    desc = description[3].reset_index(drop=True)
+                    desc = desc.str.replace("EACH +\w+", "", regex=True)
+                    desc = desc.str.replace(r"\s+", " ", regex=True)
+                    desc = desc.str.replace(r"\d\d?/\d\d?/\d{4} Universal - Rep Dash", "", regex=True)
+                    desc = desc.values
+                    desc = pd.Series(desc)
+                except:
+                    desc = "not found"
+
+                # ##################################################################
+                # ##### WORKING BOX 3 SERIAL
+                # ##################################################################
+
+                serial = df1[df1['0'].str.contains(" EACH ")].index
+                serial = serial.tolist()
+                serial = df1.loc[serial]
+                serial = serial["1010"]
+
+                ###### Serial
+                try:
+                    srl = serial.reset_index(drop=True)
+                    srl = srl.values
+                    srl = pd.Series(srl)  # print(srl)
+                except:
+                    srl = "not found"
+
+                ##################################################################
+                ##### WORKING BOX 3 Price
+                ##################################################################
+
+                price = df1[df1['0'].str.contains(" EACH ")].index
+                price = price.tolist()
+                price = df1.loc[price]
+
+                # price = price["1003"].str.split(expand=True)
+                price = price["1003"].str.split(" ").str[-1]
+
+                ###### Price
+                try:
+                    # price = price[0].reset_index(drop=True)
+                    # price = price.values
+                    # price = pd.Series(price)
+
+                    price = price.reset_index(drop=True)
+                    price = pd.Series(price)
+                except:
+                    price = "not found"
+
+                ##################################################################
+                ##### WORKING BOX 3 Extension
+                ##################################################################
+
+                extension = df1[df1['0'].str.contains(" EACH ")].index
+                extension = extension.tolist()
+                extension = df1.loc[extension]
+                extension = extension["1003"].str.split(expand=True)
+                # print(extension)
+
+                ###### Extension
+                try:
+                    extension = extension[0].reset_index(drop=True)
+                    extension = extension.values
+                    extension = pd.Series(extension)  # print(extension)
+                except:
+                    extension = "not found"
+
+                ##################################################################
+                ##### WORKING BOX 3 Change Due
+                ##################################################################
+                changedue = df1[df1['0'].str.contains(" EACH ")].index
+                changedue = changedue.tolist()
+                changedue = df1.loc[changedue]
+                changedue = changedue["1006"].astype(str).str.split(expand=True)
+
+                ###### Change Due
+                try:
+                    changedue = changedue[0].reset_index(drop=True)
+                    changedue = changedue.values
+                    changedue = pd.Series(changedue)
+
+                except:
+                    changedue = "not found"
+
+                ############################################################################################################
+                ###### WORKING BOX 2
+                ############################################################################################################
+
+                df1.replace([np.nan], [""], inplace=True)
+                a = df1[df1['0'].str.contains("BAN")].index - 1
+                a = df1.loc[a]
+                a = a["0"].str.contains("Term")
+                b = a.tolist()
+
+                if False in b:
+                    print("if")
+
+                    a = pd.DataFrame(a).reset_index()
+                    a = a[a["0"] == False].index
+                    terms = "not found"
+                    trans = "not found"
+                    salerep = "not found"
+
+                    termrowdf = df1[df1['0'].str.contains("EACH")].index
+                    termrowdf = df1.loc[termrowdf]
+                    termrowdf = termrowdf["1001"]
+                    termrowdf = termrowdf.str.split(",", expand=True)
+
+                    #### TERM
+                    try:
+                        terms = termrowdf[0].reset_index(drop=True)
+                    except:
+                        terms = "not found"
+                    #### TRANS
+                    try:
+                        trans = termrowdf[1].reset_index(drop=True)
+                    except:
+                        trans = "not found"
+                    #### SALES REP
+                    try:
+                        salerep = termrowdf[2].reset_index(drop=True)
+                    except:
+                        salerep = "not found"
+
+                    termlastdf = df1[df1['0'].str.contains("EACH")].index
+                    termlastdf = df1.loc[termlastdf]
+                    eachlast = termlastdf.tail(1).index
+
+                    termlastdf = df1[df1['0'].str.contains("Term")].index
+                    termlastdf = df1.loc[termlastdf]
+                    termlast = termlastdf.tail(1).index
+
+                    try:
+                        if termlast > eachlast:
+                            termlastdf = df1[df1['0'].str.contains("Term")].index
+                            termlastdf = df1.loc[termlastdf]
+                            termlast = termlastdf.tail(1)
+                            termlast = termlast["0"].str.split(",", expand=True)
+                            termrowdf = pd.concat([termrowdf, termlast])
+
+                            try:
+                                terms = termrowdf[0].reset_index(drop=True)
+                            except:
+                                terms = "not found"
+
+                            try:
+                                trans = termrowdf[1].reset_index(drop=True)
+                            except:
+                                trans = "not found"
+
+                            try:
+                                salerep = termrowdf[2].reset_index(drop=True)
+                            except:
+                                salerep = "not found"
+                    except:
+                        print("not found")
+
+                    #######################################
+                    ##### ----- SECOND ROW
+                    #######################################
+
+                    #### FIND BAN ROW
+
+                    banrowdf = df1[df1['0'].str.contains("EACH")].index
+                    banrowdf = df1.loc[banrowdf]
+                    banrowdf = banrowdf["1002"].str.split(",", expand=True)
+                    banrowdf = pd.DataFrame(banrowdf)
+
+                    #### INVOICE DATE
+                    try:
+                        invoicedate = banrowdf[0].reset_index(drop=True)
+                    except:
+                        invoicedate = "not found"
+
+                    #### BAM
+                    try:
+                        ban = banrowdf[1].reset_index(drop=True)
+                    except:
+                        ban = "not found"
+
+                    #### MSISDN
+                    try:
+                        msisdn = banrowdf[2].reset_index(drop=True)
+                    except:
+                        msisdn = "not found"
+
+                    #### CUSTOMER
+                    try:
+                        customer = banrowdf[3].reset_index(drop=True)
+                    except:
+                        customer = "not found"
+
+                    eachlastrow = df1[df1['0'].str.contains("EACH")].index
+                    eachlastrow = df1.loc[eachlastrow]
+                    eachlast = eachlastrow.tail(1).index
+
+                    banlastrow = df1[df1['0'].str.contains("BAN")].index
+                    banlastrow = df1.loc[banlastrow]
+                    banlast = banlastrow.tail(1).index
+                    try:
+                        if banlast > eachlast:
+                            banlastrow = df1[df1['0'].str.contains("BAN")].index
+                            banlastrow = df1.loc[banlastrow]
+                            banlast = banlastrow.tail(1)
+
+                            banlast = banlast["0"].str.split(",", expand=True)
+                            banlastrow = pd.concat([banrowdf, banlast])
+
+                            #### INVOICE DATE
+                            try:
+                                invoicedate = banlastrow[0].reset_index(drop=True)
+                            except:
+                                invoicedate = "not found"
+
+                            #### BAM
+                            try:
+                                ban = banlastrow[1].reset_index(drop=True)
+                            except:
+                                ban = "not found"
+
+                            #### MSISDN
+                            try:
+                                msisdn = banlastrow[2].reset_index(drop=True)
+                            except:
+                                msisdn = "not found"
+
+                            #### CUSTOMER
+                            try:
+                                customer = banlastrow[3].reset_index(drop=True)
+                            except:
+                                customer = "not found"
+                    except:
+                        print("not found")
+
+                    ################################################################
+                    #### Tax Total Tenders
+                    ################################################################
+
+                    tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    tenderrowdf = tenderrowdf.tolist()
+                    tenderrowdf = df1.loc[tenderrowdf]
+                    tenderrowdf = tenderrowdf["1007"].str.split(n=3, expand=True)
+
+                    try:
+                        sales = tenderrowdf[0].reset_index(drop=True)
+                    except:
+                        sales = "not found"
+
+                    try:
+                        tax = tenderrowdf[1].reset_index(drop=True)
+                    except:
+                        tax = "not found"
+
+                    try:
+                        total = tenderrowdf[2].reset_index(drop=True)
+                    except:
+                        total = "not found"
+
+                    ################################################################
+                    #### Tender
+                    ################################################################
+
+                    tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    tenderrowdf = tenderrowdf.tolist()
+                    tenderrowdf = df1.loc[tenderrowdf]
+                    tenderrowdf = tenderrowdf["1011"]
+                    tenderrowdf = tenderrowdf.str.strip()
+                    tenderrowdf1 = tenderrowdf.str.split(" ").str[-2:].str.get(0)
+                    tenderrowdf2 = tenderrowdf.str.split(" ").str[-2:].str.get(1)
+                    tenderrowdf = tenderrowdf1 + " " + tenderrowdf2.map(str)
+
+                    try:
+                        tender = tenderrowdf.reset_index(drop=True)
+                    except:
+                        tender = "not found"
+
+                    ##### Page No
+                    pagename = files[mya].split("convert_csv")
+                    pagename = pagename[1:]
+                    pagename = "".join(pagename)
+                    # print(pagename)
+
+                    #### Https link
+                    httpslink = df1[df1["0"].str.contains("^https")]["0"].reset_index(drop=True)
+                    # print(httpslink)
+
+                    alldata = pd.DataFrame()
+
+                    alldata['Terms'] = terms
+                    alldata['Trans'] = trans
+                    alldata['SalesRep'] = salerep
+                    alldata['Category'] = category
+                    alldata['PrintDate'] = printdate
+                    alldata['StoreNumber'] = storeno
+                    alldata['TMobile'] = tmobile
+                    alldata['Businessdate'] = businessdate
+                    alldata['Register'] = registerno
+                    alldata["Qty"] = qty
+                    alldata["Unit"] = unit
+                    alldata["Sku"] = sku
+                    alldata["Description"] = desc
+                    alldata["Serial"] = srl
+                    alldata["Price"] = price
+                    alldata["Extension"] = price
+                    alldata["Change Due"] = changedue
+                    alldata['Category'] = category
+                    alldata['PrintDate'] = printdate
+                    alldata['StoreNumber'] = storeno
+                    alldata['TMobile'] = tmobile
+                    alldata['Businessdate'] = businessdate
+                    alldata['Register'] = registerno
+                    alldata['Terms'] = terms
+                    alldata['Trans'] = trans
+                    alldata['SalesRep'] = salerep
+                    alldata['InvoiceDate'] = invoicedate
+                    alldata['Customer'] = customer
+                    alldata['Ban'] = ban
+                    alldata['Msidin'] = msisdn
+                    alldata['Sales'] = sales
+                    alldata['Tax'] = tax
+                    alldata['Total'] = total
+                    alldata['Tender'] = tender
+                    alldata['Pagename'] = pagename
+                    alldata['Https'] = httpslink
+
+                    alldata = alldata.reindex(sorted(alldata.columns), axis=1)
+
+                    alldata = pd.DataFrame(data=alldata,
+                                           columns=['Category', 'PrintDate', 'StoreNumber', 'TMobile', 'Businessdate', 'Register', 'Qty', 'Unit',
+                                                    'Sku', 'Description', 'Serial', 'Price', 'Extension', 'Change Due', 'Terms', 'Trans', 'SalesRep',
+                                                    'InvoiceDate', 'Customer', 'Ban', 'Msidin', "Sales", "Tax", "Total", "Tender", "Pagename","Https"])
+
+                    print(alldata.to_excel(dir + str(file_names[mya]) + '.xlsx', index=False))
+                    print(alldata)
+
+                else:
+                    print("else")
+
+                    #### FIND TERMS ROW
+                    termrowdf = df1[df1['0'].str.contains("EACH")].index
+                    termrowdf = df1.loc[termrowdf]
+                    termrowdf = termrowdf["1001"].str.split(",", expand=True)
+
+                    #### TERM
+                    try:
+                        terms = termrowdf[0].reset_index(drop=True)
+
+                    except:
+                        terms = "not found"
+
+                    #### TRANS
+                    try:
+                        trans = termrowdf[1].reset_index(drop=True)
+                    except:
+                        trans = "not found"
+
+                    #### SALES REP
+                    try:
+                        salerep = termrowdf[2].reset_index(drop=True)
+                    except:
+                        salerep = "not found"
+
+                    termlastdf = df1[df1['0'].str.contains("EACH")].index
+                    termlastdf = df1.loc[termlastdf]
+                    eachlast = termlastdf.tail(1).index
+
+                    termlastdf = df1[df1['0'].str.contains("Term")].index
+                    termlastdf = df1.loc[termlastdf]
+                    termlast = termlastdf.tail(1).index
+                    try:
+                        if termlast > eachlast:
+                            termlastdf = df1[df1['0'].str.contains("Term")].index
+                            termlastdf = df1.loc[termlastdf]
+                            termlast = termlastdf.tail(1)
+                            termlast = termlast["0"].str.split(",", expand=True)
+                            termrowdf = pd.concat([termrowdf, termlast])
+
+                            try:
+                                terms = termrowdf[0].reset_index(drop=True)
+                            except:
+                                terms = "not found"
+
+                            try:
+                                trans = termrowdf[1].reset_index(drop=True)
+                            except:
+                                trans = "not found"
+
+                            try:
+                                salerep = termrowdf[2].reset_index(drop=True)
+                            except:
+                                salerep = "not found"
+                    except:
+                        print("not found")
+
+                    #######################################
+                    ##### ----- SECOND ROW
+                    #######################################
+
+                    #### FIND BAN ROW
+                    banrowdf = df1[df1['0'].str.contains("EACH")].index
+                    banrowdf = df1.loc[banrowdf]
+                    banrowdf = banrowdf["1002"].str.split(",", expand=True)
+                    banrowdf = pd.DataFrame(banrowdf)
+
+                    #### INVOICE DATE
+                    try:
+                        invoicedate = banrowdf[0].reset_index(drop=True)
+                    except:
+                        invoicedate = "not found"
+
+                    #### BAM
+                    try:
+                        ban = banrowdf[1].reset_index(drop=True)
+                    except:
+                        ban = "not found"
+
+                    #### MSISDN
+                    try:
+                        msisdn = banrowdf[2].reset_index(drop=True)
+                    except:
+                        msisdn = "not found"
+
+                    #### CUSTOMER
+                    try:
+                        customer = banrowdf[3].reset_index(drop=True)
+                    except:
+                        customer = "not found"
+
+                    eachlastrow = df1[df1['0'].str.contains("EACH")].index
+                    eachlastrow = df1.loc[eachlastrow]
+                    eachlast = eachlastrow.tail(1).index
+
+                    banlastrow = df1[df1['0'].str.contains("BAN")].index
+                    banlastrow = df1.loc[banlastrow]
+                    banlast = banlastrow.tail(1).index
+                    try:
+                        if banlast > eachlast:
+                            banlastrow = df1[df1['0'].str.contains("BAN")].index
+                            banlastrow = df1.loc[banlastrow]
+                            banlast = banlastrow.tail(1)
+
+                            banlast = banlast["0"].str.split(",", expand=True)
+                            banlastrow = pd.concat([banrowdf, banlast])
+
+                            #### INVOICE DATE
+                            try:
+                                invoicedate = banlastrow[0].reset_index(drop=True)
+                            except:
+                                invoicedate = "not found"
+
+                            #### BAM
+                            try:
+                                ban = banlastrow[1].reset_index(drop=True)
+                            except:
+                                ban = "not found"
+
+                            #### MSISDN
+                            try:
+                                msisdn = banlastrow[2].reset_index(drop=True)
+                            except:
+                                msisdn = "not found"
+
+                            #### CUSTOMER
+                            try:
+                                customer = banlastrow[3].reset_index(drop=True)
+                            except:
+                                customer = "not found"
+                    except:
+                        print("not found")
+
+                    ################################################################
+                    #### Sales Tax Total
+                    ################################################################
+
+                    tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    tenderrowdf = tenderrowdf.tolist()
+                    tenderrowdf = df1.loc[tenderrowdf]
+                    tenderrowdf = tenderrowdf["1007"].str.split(n=3, expand=True)
+
+                    try:
+                        sales = tenderrowdf[0].reset_index(drop=True)
+                    except:
+                        sales = "not found"
+
+                    try:
+                        tax = tenderrowdf[1].reset_index(drop=True)
+                    except:
+                        tax = "not found"
+
+                    try:
+                        total = tenderrowdf[2].reset_index(drop=True)
+                    except:
+                        total = "not found"
+
+                    ################################################################
+                    #### Tender
+                    ################################################################
+
+                    # tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    # tenderrowdf = tenderrowdf.tolist()
+                    # tenderrowdf = df1.loc[tenderrowdf]
+                    # tenderrowdf = tenderrowdf["1011"]
+                    # tenderrowdf = tenderrowdf
+                    # tenderrowdf = tenderrowdf.str.strip()
+                    # tenderrowdf1 = tenderrowdf.str.split(" ").str[-2:].str.get(0)
+                    # tenderrowdf2 = tenderrowdf.str.split(" ").str[-2:].str.get(1)
+                    # tenderrowdf = tenderrowdf1 + " " + tenderrowdf2.map(str)
+
+                    # tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    # tenderrowdf = tenderrowdf.tolist()
+                    # tenderrowdf = df1.loc[tenderrowdf]
+                    # tenderrowdf = tenderrowdf["1011"]
+                    # tenderrowdf = tenderrowdf
+                    # tenderrowdf = tenderrowdf.str.strip()
+                    # tenderrowdf = tenderrowdf.str.replace(" \d+", "")
+                    # tenderrowdf = tenderrowdf.str.split("\d ").str[-1]
+                    # tenderrowdf = tenderrowdf.str.strip()
+                    # tenderrowdf1 = tenderrowdf.str.split(" ").str[-2:].str.get(0)
+                    # tenderrowdf2 = tenderrowdf.str.split(" ").str[-2:].str.get(1)
+                    # tenderrowdf = tenderrowdf1 + " " + tenderrowdf2.map(str)
+
+                    tenderrowdf = df1[df1['0'].str.contains("EACH")].index
+                    tenderrowdf = tenderrowdf.tolist()
+                    tenderrowdf = df1.loc[tenderrowdf]
+                    tenderrowdf = tenderrowdf["1011"]
+                    tenderrowdf = tenderrowdf
+                    tenderrowdf = tenderrowdf.str.strip()
+                    tenderrowdf = tenderrowdf.str.replace(" \d+", "")
+                    tenderrowdf = tenderrowdf.str.findall(r'[A-Z]\w+? ?-?\d+.?\d+', flags=re.IGNORECASE).str[-1]
+                    # print(tenderrowdf)
+
+
+                    try:
+                        tender = tenderrowdf.reset_index(drop=True)
+                    except:
+                        tender = "not found"
+
+                    ##### Page No
+                    pagename = files[mya].split("convert_csv")
+                    pagename = pagename[1:]
+                    pagename = "".join(pagename)
+                    # print(pagename)
+
+                    #### Https link
+                    httpslink = df1[df1["0"].str.contains("^https")]["0"].reset_index(drop=True)
+                    # print(httpslink)
+
+                    ############################################################################################################
+                    ###### CREATE DATAFRAME
+                    ############################################################################################################
+
+                    alldata = pd.DataFrame()
+
+                    alldata['Terms'] = terms
+                    alldata['Trans'] = trans
+                    alldata['SalesRep'] = salerep
+                    alldata['Category'] = category
+                    alldata['PrintDate'] = printdate
+                    alldata['StoreNumber'] = storeno
+                    alldata['TMobile'] = tmobile
+                    alldata['Businessdate'] = businessdate
+                    alldata['Register'] = registerno
+                    alldata["Qty"] = qty
+                    alldata["Unit"] = unit
+                    alldata["Sku"] = sku
+                    alldata["Description"] = desc
+                    alldata["Serial"] = srl
+                    alldata["Price"] = price
+                    alldata["Extension"] = price
+                    alldata["Change Due"] = changedue
+                    alldata['Category'] = category
+                    alldata['PrintDate'] = printdate
+                    alldata['StoreNumber'] = storeno
+                    alldata['TMobile'] = tmobile
+                    alldata['Businessdate'] = businessdate
+                    alldata['Register'] = registerno
+                    alldata['Terms'] = terms
+                    alldata['Trans'] = trans
+                    alldata['SalesRep'] = salerep
+                    alldata['InvoiceDate'] = invoicedate
+                    alldata['Customer'] = customer
+                    alldata['Ban'] = ban
+                    alldata['Msidin'] = msisdn
+                    alldata['Sales'] = sales
+                    alldata['Tax'] = tax
+                    alldata['Total'] = total
+                    alldata['Tender'] = tender
+                    alldata["Pagename"] = pagename
+                    alldata["Https"] = httpslink
+
+                    alldata = alldata.reindex(sorted(alldata.columns), axis=1)
+
+                    alldata = pd.DataFrame(data=alldata,
+                                           columns=['Category', 'PrintDate', 'StoreNumber', 'TMobile', 'Businessdate', 'Register', 'Qty', 'Unit',
+                                                    'Sku', 'Description', 'Serial', 'Price', 'Extension', 'Change Due', 'Terms', 'Trans', 'SalesRep',
+                                                    'InvoiceDate', 'Customer', 'Ban', 'Msidin', "Sales", "Tax", "Total", "Tender", "Pagename", "Https"])
+
+
+                    print(alldata)
+                    print(alldata.to_excel(dir + str(file_names[mya]) + '.xlsx', index=False))
+
+
+
+        except pd.errors.EmptyDataError:
+            print("Found empty file : {file}".format(file=str(file_names[mya])))
+            print(df1.to_csv(problems + str(file_names[mya]) + '.csv', index=False))
+
+    except:
+        print(dataset.to_csv(issues + str(file_names[mya]) + '.csv', index=False))
+
+
+
+nc = glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\Not Concern/*.xlsx")
+n = pd.DataFrame({"INVALID": nc})
+n = n["INVALID"].apply(lambda x:x.split("\\")[-1])
+invalid = pd.DataFrame(n)
+print(invalid.to_excel(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\empty\emp.xlsx", index=False))
+
+
+###########################################################################################
+path = os.getcwd()
+files = os.listdir(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\format')
+path_file =  r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\format/'
+
+def sorted_aphanumeric(data):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(data, key=alphanum_key)
+files = sorted_aphanumeric(os.listdir(path_file))
+
+files_xls = [f for f in files if f[-4:] == 'xlsx']
+df = pd.DataFrame()
+for f in files_xls:
+    data = pd.read_excel(path_file + f )
+    df = df.append(data, sort=False)
+
+df["Pagename_2"] = df["Pagename"].str.split(".").str[0]
+
+df["Category"] = df["Category"].replace("not found", np.NaN)
+df["PrintDate"] = df["PrintDate"].replace("not found", np.NaN)
+df["StoreNumber"] = df["StoreNumber"].replace("not found", np.NaN)
+df["TMobile"] = df["TMobile"].replace("not found", np.NaN)
+df["Businessdate"] = df["Businessdate"].replace("not found", np.NaN)
+df["Register"] = df["Register"].replace("not found", np.NaN)
+df = df.reset_index(drop=True)
+
+try:
+    df['Category'] = df.groupby('Pagename_2')['Category'].fillna(method='ffill')
+    df['PrintDate'] = df.groupby('Pagename_2')['PrintDate'].fillna(method='ffill')
+    df['StoreNumber'] = df.groupby('Pagename_2')['StoreNumber'].fillna(method='ffill')
+    df['TMobile'] = df.groupby('Pagename_2')['TMobile'].fillna(method='ffill')
+    df['Businessdate'] = df.groupby('Pagename_2')['Businessdate'].fillna(method='ffill')
+    df['Register'] = df.groupby('Pagename_2')['Register'].fillna(method='ffill')
+except:
+    pass
+
+df = df.replace(np.nan, 'not found', regex=True)
+print(df.to_excel(r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\export\Mastersort.xlsx', index=False))
+
+
+
+
+
+
+nc = glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\Not Concern/*.xlsx")
+newList = []
+for i in nc:
+    newList.append(i.split('\\')[-1])
+NCfile = []
+for j in newList:
+    NCfile.append(j.split('(page#')[0])
+UnFiles = list(dict.fromkeys(NCfile))
+
+a = []
+for f in range(len(UnFiles)):
+    a.append(glob.glob(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\daily/{}".format(UnFiles[f]))[0])
+
+for x in range(len(a)):
+    shutil.copy(a[x], r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid/')
+
+shutil.make_archive(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid", 'zip', r'C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid/')
+shutil.move(r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid.zip", r"C:\xampp\htdocs\Terminal\DAILY REPORT LIST\invalid/")
